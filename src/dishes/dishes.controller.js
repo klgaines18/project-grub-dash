@@ -2,6 +2,7 @@ const path = require("path");
 
 // Use the existing dishes data
 const dishes = require(path.resolve("src/data/dishes-data"));
+// const dishes = require("../data/dishes-data");
 
 // Use this function to assign ID's when necessary
 const nextId = require("../utils/nextId");
@@ -49,16 +50,16 @@ function update(req, res) {
 
 function dishExists(req, res, next) {
   const { dishId } = req.params;
-  const foundDish = dishes.find(dish => dish.id === Number(dishId));
+  const foundDish = dishes.find((dish) => Number(dish.id) === Number(dishId));
   if (foundDish) {
     res.locals.dish = foundDish;
     return next();
   }
   next({
     status: 404,
-    message: `Dish does not exist: ${dishId}`,
+    message: `Dish id not found: ${dishId}`,
   });
-};
+}
 
 function bodyDataHas(propertyName) {
   return function (req, res, next) {
@@ -84,11 +85,13 @@ function priceIsValidNumber(req, res, next){
 function dishIdMatches(req, res, next) {
   const { dishId } = req.params;
   const { data: { id } = {} } = req.body;
-  if (id !== Number(dishId)) {
-    return next({
-        status: 400,
-        message: `Dish id does not match route id. Dish: ${id}, Route: ${dishId}`
-    });
+  if (id) {
+    if (Number(id) !== Number(dishId)) {
+      return next({
+          status: 400,
+          message: `Dish id does not match route id. Dish: ${id}, Route: ${dishId}`
+      });
+    }
   }
   next()
 }
@@ -99,21 +102,21 @@ module.exports = {
   list,
   read: [dishExists, read],
   create: [
-    bodyDataHas("name"),
-    bodyDataHas("description"),
-    bodyDataHas("price"),
-    bodyDataHas("image_url"),
-    priceIsValidNumber,
-    create
+      bodyDataHas("name"),
+      bodyDataHas("description"),
+      bodyDataHas("price"),
+      bodyDataHas("image_url"),
+      priceIsValidNumber,
+      create
   ],
   update: [
-    dishExists,
-    dishIdMatches,
-    bodyDataHas("name"),
-    bodyDataHas("description"),
-    bodyDataHas("price"),
-    bodyDataHas("image_url"),
-    priceIsValidNumber,
-    update
+      dishExists,
+      dishIdMatches,
+      bodyDataHas("name"),
+      bodyDataHas("description"),
+      bodyDataHas("price"),
+      bodyDataHas("image_url"),
+      priceIsValidNumber,
+      update
   ],
 };
